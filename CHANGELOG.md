@@ -1,7 +1,8 @@
 # Changelog
 
 All notable changes to Lisa are listed here. Versions follow [semantic versioning](https://semver.org):
-new features raise the middle number, fixes the last one.
+new features raise the middle number, fixes the last one. Releases are made automatically when `develop` is merged
+into `main`.
 
 ## [0.2.0] - 2026-09-26
 

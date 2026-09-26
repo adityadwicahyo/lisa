@@ -1,30 +1,52 @@
 name: Release
 
-# Pushing a tag such as v0.3.0 publishes a GitHub Release whose notes are that version's CHANGELOG.md section.
+# Merging into main releases a new version when the merge brings `feat` or `fix` commits (see scripts/release.py):
+# the workflow commits the new version and CHANGELOG.md section to main, tags it, publishes the GitHub Release
+# and moves develop forward to include it. Work pushed to develop never changes the version.
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
 
 permissions:
   contents: write
 
+concurrency: release
+
 jobs:
   release:
+    # The workflow's own release commit doesn't start another release.
+    if: "!startsWith(github.event.head_commit.message, 'chore(release): release ')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Take the release notes from CHANGELOG.md
-        run: |
-          python3 - <<'EOF'
-          import os, re
-          version = os.environ["GITHUB_REF_NAME"].removeprefix("v")
-          changelog = open("CHANGELOG.md", encoding="utf-8").read()
-          section = re.search(rf"^## \[{re.escape(version)}\][^\n]*\n(.*?)(?=^## |^\[|\Z)", changelog, re.M | re.S)
-          if not section:
-              raise SystemExit(f"CHANGELOG.md has no section for {version}")
-          open("release-notes.md", "w", encoding="utf-8").write(section.group(1).strip() + "\n")
-          EOF
-      - uses: softprops/action-gh-release@v2
         with:
-          name: Lisa ${{ github.ref_name }}
+          fetch-depth: 0  # All tags and branches, to find the last release and update develop.
+
+      - name: Decide the version
+        id: release
+        run: python3 scripts/release.py
+
+      - name: Commit, tag and push
+        if: steps.release.outputs.version
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(release): release $VERSION" -m "BREAKING CHANGES:
+          - Set \`__version__\` to $VERSION in \`lisa/__init__.py\` and add the $VERSION section to \`CHANGELOG.md\`."
+          git tag -a "v$VERSION" -m "Lisa $VERSION"
+          git push origin HEAD:main "v$VERSION"
+          if git merge-base --is-ancestor origin/develop HEAD; then
+            git push origin HEAD:develop
+          else
+            echo "::notice::develop has commits that main doesn't; merge main into develop to pick up $VERSION."
+          fi
+
+      - name: Publish the GitHub Release
+        if: steps.release.outputs.version
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.release.outputs.version }}
+          name: Lisa v${{ steps.release.outputs.version }}
           body_path: release-notes.md

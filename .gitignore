@@ -15,3 +15,6 @@ config.json
 
 # Local shim for Claude Code sessions started before `lisa install`; delete after restarting Claude Code
 lisa_hook.py
+
+# Written by scripts/release.py during a release
+release-notes.md

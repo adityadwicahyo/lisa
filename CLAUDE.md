@@ -42,10 +42,19 @@ Logs: `.lisa/logs/hook.log`, `server.log`, `listener.log`.
 
 ## Releasing
 
-The version lives only in `lisa/__init__.py` (`pyproject.toml` reads it). To release: bump it, add a section to
-CHANGELOG.md, commit, then `git tag -a vX.Y.Z -m "Lisa X.Y.Z"` and `git push origin main vX.Y.Z`. The Release
-workflow publishes that CHANGELOG section as the GitHub Release; the Tests workflow runs pytest on Windows for
-every push.
+Work happens on `develop`; never commit to `main` directly. Merging `develop` into `main` and pushing is a release:
+the Release workflow runs `scripts/release.py`, which picks the version from the commit **headers** since the last
+tag (any `feat` -> minor, else `fix`/`perf` -> patch, else no release; bodies are ignored because they always start
+with "BREAKING CHANGES:"), writes `lisa/__init__.py` and a CHANGELOG.md section, commits
+`chore(release): release X.Y.Z` to main, tags `vX.Y.Z`, publishes the GitHub Release and fast-forwards `develop`.
+After a release, `git pull` on both branches. For a bigger jump (1.0.0) or hand-written notes, set `__version__`
+and/or write the CHANGELOG section on `develop` before merging; the script uses them. The Tests workflow runs
+pytest on Windows for pushes to both branches.
+
+```powershell
+git checkout main; git pull; git merge develop; git push; git checkout develop   # release
+.\.venv\Scripts\python.exe scripts\release.py --dry-run                         # preview what would be released
+```
 
 ## Gotchas
 
