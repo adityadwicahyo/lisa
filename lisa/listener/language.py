@@ -71,17 +71,19 @@ def is_cancel(prompt, config):
 
 
 def classify_answer(text, config):
-    """"send", "cancel", or None for an answer to "Shall I send it?" that is neither, or too long to be a yes/no.
+    """"send", "cancel", "keep", or None for an answer to "Shall I send it?" that is none of these, or too long.
 
-    A cancel word wins over a send word ("no, don't send it").
+    Keep wins over cancel ("no, I'll edit it" leaves the text), and cancel over send ("no, don't send it").
 
     :param text: Transcribed answer
     :param config: Settings; uses `confirm`
     """
-    words = words_of(text)
+    words = words_of(text.lower().replace("nevermind", "never mind"))
     if not words or len(words) > config["confirm"]["max_words"]:
         return None
     spoken = f" {' '.join(words)} "
+    if any(f" {word} " in spoken for word in config["confirm"]["keep_words"]):
+        return "keep"
     if any(f" {word} " in spoken for word in config["confirm"]["cancel_words"]):
         return "cancel"
     if any(f" {word} " in spoken for word in config["confirm"]["send_words"]):

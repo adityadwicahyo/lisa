@@ -80,8 +80,12 @@ a list counts as its own paragraph.
    at the start. Anything else is dropped without logging.
 4. A voice command ("off"), a cancel ("never mind") or the prompt is handled. Prompts are transcribed again
    with the accurate model, typed with `SendInput` Unicode key presses, and then `confirm_and_send` asks
-   "Shall I send it?". Enter only goes to the same window; on "no" or silence the typed text is erased
-   (unless you touched the keyboard or mouse meanwhile).
+   "Shall I send it?". The answer is transcribed by `speech_to_text.answer_model` with a short hint of the
+   expected words, capped at 16 tokens so the hint can't make Whisper loop. A yes presses Enter and a no
+   erases the typed text, both only in the same window; "keep it", silence or an unclear answer leave the
+   text for you. The next prompt erases that leftover
+   text first, unless `desktop.KeyWatcher` (a low-level keyboard hook, active only while text is left)
+   saw you type or press Enter since; Lisa's own keys are injected and not counted.
 
 **When it listens.** Only while Lisa and the microphone are on, a Claude Code process runs (`claude.exe`,
 not the desktop app, see `system.claude_code_running`) and, unless `listener.enabled_on_battery`, the

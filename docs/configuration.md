@@ -95,6 +95,8 @@ Picks the end-of-task phrase (`phrases.json`) when replies aren't read or have n
 | `model`        | `"small.en"` | Transcribes prompts. `"base.en"` answers ~2 s faster, slightly less accurate |
 | `language`     | `"en"`       | Spoken language (use multilingual models, e.g. `"small"`, for others)      |
 | `hint`         | Claude, Lisa, README, … | Words it should expect; add names and terms it mishears        |
+| `answer_model` | `"base.en"`  | Transcribes your answer to "Shall I send it?" (short answers need more than `tiny.en`) |
+| `answer_hint`  | Yes. No. Cancel. Never mind. … | Words to expect in that answer; keep it short, or Whisper may repeat itself |
 | `idle_minutes` | `10`         | Models are unloaded after this long unused                                 |
 
 ## typing
@@ -109,10 +111,14 @@ Picks the end-of-task phrase (`phrases.json`) when replies aren't read or have n
 | Key               | Default | Meaning                                                              |
 |-------------------|---------|----------------------------------------------------------------------|
 | `enabled`         | `true`  | Ask "Shall I send it?" after typing; `false` leaves the text for you |
-| `timeout_seconds` | `6`     | How long she waits for your answer                                   |
-| `max_words`       | `6`     | Longer answers count as neither yes nor no                           |
-| `send_words`      | yes, okay, send it, looks good, … | Answers that press Enter                   |
-| `cancel_words`    | no, wait, cancel, not yet, …      | Answers that erase the text (they win over send words) |
+| `timeout_seconds` | `4`     | How long she waits for your answer; no answer leaves the text for you |
+| `max_words`       | `6`     | Longer answers count as no answer                                    |
+| `send_words`      | yes, okay, send, good, … | Answers that press Enter                                   |
+| `cancel_words`    | no, cancel, never mind, delete, … | Answers that erase the text (they win over send words) |
+| `keep_words`      | keep, wait, hold on, not yet, edit, … | Answers that leave the text for you (they win over cancel words) |
+
+Each word also matches inside a longer answer: "cancel" covers "cancel it" and "cancel that", "good" covers
+"looks good". An answer that matches no list, or no answer, leaves the text.
 
 ## commands
 

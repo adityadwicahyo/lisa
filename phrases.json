@@ -62,6 +62,11 @@
     "Microphone off, {address}.",
     "Okay, I'm not listening anymore, {address}."
   ],
+  "keep": [
+    "Okay, it's yours to edit, {address}.",
+    "Alright, I'll leave it for you, {address}.",
+    "Sure, edit away, {address}."
+  ],
   "cancelled": [
     "Okay, never mind, {address}.",
     "Cancelled, {address}.",

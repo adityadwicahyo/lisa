@@ -43,6 +43,8 @@ class Listener:
         self.vad = None
         self.voiceprint = None
         self.quiet_until = 0.0
+        self.left_text = None  # (window, text) Lisa typed and left unsent, replaced by the next prompt.
+        self.key_watcher = desktop.KeyWatcher()
         self.preroll = collections.deque(maxlen=6)  # The moment before speech starts (~0.5 s), so no word is clipped.
         self.reset_sentence()
         self.socket = system.bind_port(self.settings["port"])  # Fails if a listener already runs.
@@ -289,6 +291,9 @@ class Listener:
         delay = self.config["typing"]["delay_ms"] / 1000
         if app.lower() in {name.lower() for name in self.config["typing"]["apps"]}:
             window = desktop.focused_window()
+            if self.config["confirm"]["enabled"]:
+                self.stt.preload(self.config["speech_to_text"]["answer_model"])  # Ready by the time you answer.
+            self.remove_left_text(window)
             desktop.type_text(text, delay)
             log(f"Typed into {app}")
             if self.config["confirm"]["enabled"]:
@@ -305,33 +310,58 @@ class Listener:
         client.speak(f"{message}, {address}." if address else f"{message}.", self.config)
 
     def confirm_and_send(self, window, text):
-        """Ask "Shall I send it?"; press Enter on a clear yes, otherwise erase the text so the next prompt starts clean.
+        """Ask "Shall I send it?"; press Enter on a yes, erase the text on a no, and otherwise leave it for you.
 
-        Nothing is pressed if the focus moved to another window, and nothing is erased on a missing answer while
-        you're using the keyboard or mouse (you may be editing it yourself).
+        Only an explicit "no" erases, so a missed or unclear answer never loses the prompt. Keys are only pressed
+        in the window the text was typed into.
 
         :param window: Window the text was typed into
         :param text: The typed prompt
         """
-        typed_at = desktop.last_input_tick()
         self.say("confirm", sounds.LISTENING)
         frames = self.record_answer(self.config["confirm"]["timeout_seconds"], silence_seconds=0.7, max_seconds=6)
         if frames and not self.is_owner(frames, len(frames) * CHUNK_SECONDS, "answer"):
             frames = None  # Someone else answered: treat it as no answer.
-        answer_text = self.stt.transcribe(frames, quick=True) if frames else ""
+        answer_text = self.stt.transcribe_answer(frames) if frames else ""
         answer = classify_answer(answer_text, self.config)
         same_window = desktop.focused_window() == window
 
-        if answer == "send" and same_window:
+        if not same_window:
+            log(f"Not sent (answer {answer_text!r}); the focus moved, so the text was left as is")
+            sounds.play(sounds.CANCELLED)
+        elif answer == "send":
             desktop.press_enter()
             log(f"Sent (answer {answer_text!r})")
             sounds.play(sounds.DONE)
-            return
-        if not same_window:
-            log(f"Not sent (answer {answer_text!r}); the focus moved, so the text was left as is")
-        elif answer != "cancel" and desktop.last_input_tick() != typed_at:
-            log(f"Not sent (answer {answer_text!r}); you used the keyboard or mouse, so the text was left as is")
-        else:
+        elif answer == "cancel":
             desktop.erase_typed(text, self.config["typing"]["delay_ms"] / 1000)
             log(f"Not sent (answer {answer_text!r}); the typed text was removed")
-        sounds.play(sounds.CANCELLED)
+            sounds.play(sounds.CANCELLED)
+        else:  # "Keep it", no answer, or an unclear one.
+            log(f"Kept for you to edit (answer {answer_text!r})")
+            self.say("keep", sounds.DONE)  # "Okay, it's yours to edit, sir."
+            self.left_text = (window, text)
+            self.key_watcher.start()
+
+    def remove_left_text(self, window):
+        """Erase the prompt Lisa left in this window last time, so a new prompt replaces it instead of adding to it.
+
+        It is only erased if you haven't typed since: after Enter it was sent, and after other keys it holds your
+        edits, which Lisa leaves alone.
+
+        :param window: Window the new prompt goes to
+        """
+        if not self.left_text:
+            return
+        left_window, left_text = self.left_text
+        self.left_text = None
+        self.key_watcher.stop()
+        if left_window != window:
+            return
+        if self.key_watcher.enter_pressed:
+            log("Previous prompt was sent by you; nothing to erase")
+        elif self.key_watcher.keys:
+            log("Previous prompt was edited by you; left as is")
+        else:
+            desktop.erase_typed(left_text, self.config["typing"]["delay_ms"] / 1000)
+            log("Erased the previous prompt before typing the new one")

@@ -36,19 +36,48 @@ first use.
 
 ## Talking to Lisa
 
-| You say                                    | Lisa                                                            |
-|--------------------------------------------|-----------------------------------------------------------------|
-| "Lisa, run the unit tests"                 | types "run the unit tests", then asks whether to send it        |
-| "Lisa" … (she answers "Yes, sir?") … prompt | the same, in two steps                                          |
-| "yes" / "okay" / "send it" / "looks good"  | presses Enter                                                   |
-| "no" / "wait" / "cancel"                   | erases what she typed                                           |
-| "Lisa, never mind"                         | does nothing ("Okay, never mind, sir.")                         |
-| "Lisa, stop listening"                     | turns the microphone off; she still reads replies               |
-| "Lisa, off"                                | turns herself off completely                                    |
+Start with her name, **"Lisa"**, then say what you want. Anything that doesn't start with "Lisa" is ignored.
 
-The name only counts at the start of a sentence, so "tell Lisa about it" is ignored. She types only into
-the apps in `typing.apps` (VS Code, Windows Terminal, JetBrains IDEs, …); if another app is focused she
-copies the prompt to the clipboard instead.
+### 1. Say "Lisa" and your prompt
+
+> **"Lisa, run the unit tests."**
+
+Lisa types `run the unit tests` into Claude Code. You can say it in one breath, or in two steps:
+
+> **"Lisa."** … *"Yes, sir?"* … **"Run the unit tests."**
+
+### 2. Answer her question
+
+After typing, she asks something like *"Shall I send it, sir?"*:
+
+| You answer                                   | Lisa                                              |
+|----------------------------------------------|---------------------------------------------------|
+| **"Yes"**, "Okay", "Send it", "Looks good"   | presses Enter, and Claude starts working          |
+| **"Keep it"**, "Wait", "Hold on", "I'll edit it" | leaves the text for you to edit, right away   |
+| *(nothing for 4 seconds)*                    | leaves the text for you to edit                   |
+| **"No"**, "Cancel", "Never mind", "Delete it" | erases what she typed                            |
+
+### Commands
+
+Say these after "Lisa" instead of a prompt:
+
+| You say                          | Lisa                                                             |
+|----------------------------------|------------------------------------------------------------------|
+| **"Lisa, never mind"**           | types nothing (*"Okay, never mind, sir."*)                       |
+| **"Lisa, stop listening"**       | turns the microphone off; she still reads Claude's replies       |
+| **"Lisa, off"**                  | turns herself off completely                                     |
+
+To turn her back on, run `lisa on` (or `lisa mic on`) in a terminal, or `/lisa on` in Claude Code.
+
+### Good to know
+
+- The name only counts at the **start**: "please tell Lisa about the bug" is ignored.
+- Commands only count as the **whole** sentence: "Lisa, turn off the debug logging" is typed as a prompt.
+- You can change your mind mid-sentence: "Lisa, run the tests… actually, never mind" types nothing.
+- A new "Lisa, …" **replaces** text she left unsent, unless you've typed in the box yourself since (then
+  your edits stay and the new prompt goes after them).
+- She types only into the apps in `typing.apps` (VS Code, Windows Terminal, JetBrains IDEs, …). If another app
+  is focused, she copies the prompt to the clipboard and tells you.
 
 ## The `lisa` command
 

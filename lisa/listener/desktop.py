@@ -1,4 +1,4 @@
-"""Windows desktop actions: which window is focused, typing, Enter/Backspace, recent input, clipboard."""
+"""Windows desktop actions: which window is focused, typing, Enter/Backspace, clipboard."""
 
 import ctypes
 import time
@@ -106,17 +106,6 @@ def erase_typed(text, delay_seconds):
         time.sleep(delay_seconds)
 
 
-class _LastInputInfo(ctypes.Structure):
-    _fields_ = [("cbSize", wintypes.UINT), ("dwTime", wintypes.DWORD)]
-
-
-def last_input_tick():
-    """Tick count of the last keyboard or mouse input (Lisa's own typing counts too), to spot you editing."""
-    info = _LastInputInfo(ctypes.sizeof(_LastInputInfo), 0)
-    user32.GetLastInputInfo(ctypes.byref(info))
-    return info.dwTime
-
-
 def copy_to_clipboard(text):
     """Put text on the clipboard. False if the clipboard stayed busy.
 
@@ -142,3 +131,67 @@ def copy_to_clipboard(text):
         return True
     finally:
         user32.CloseClipboard()
+
+
+class _KeyboardHookInfo(ctypes.Structure):
+    _fields_ = [("vkCode", wintypes.DWORD), ("scanCode", wintypes.DWORD), ("flags", wintypes.DWORD),
+                ("time", wintypes.DWORD), ("dwExtraInfo", ctypes.c_size_t)]
+
+
+_HOOK_PROC = ctypes.WINFUNCTYPE(ctypes.c_ssize_t, ctypes.c_int, wintypes.WPARAM, wintypes.LPARAM)
+user32.SetWindowsHookExW.argtypes = [ctypes.c_int, _HOOK_PROC, wintypes.HINSTANCE, wintypes.DWORD]
+user32.SetWindowsHookExW.restype = wintypes.HHOOK
+user32.CallNextHookEx.argtypes = [wintypes.HHOOK, ctypes.c_int, wintypes.WPARAM, wintypes.LPARAM]
+user32.CallNextHookEx.restype = ctypes.c_ssize_t
+user32.UnhookWindowsHookEx.argtypes = [wintypes.HHOOK]
+user32.PostThreadMessageW.argtypes = [wintypes.DWORD, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+kernel32.GetModuleHandleW.restype = wintypes.HMODULE
+
+
+class KeyWatcher:
+    """Notices whether you typed or pressed Enter yourself, e.g. while Lisa's text waits in the input box.
+
+    Uses a low-level keyboard hook, only between `start()` and `stop()`, so Python doesn't sit in the path of
+    every keystroke all the time. Lisa's own `SendInput` keys are marked as injected and not counted.
+    """
+
+    WH_KEYBOARD_LL, WM_KEYDOWN, WM_SYSKEYDOWN, WM_QUIT, LLKHF_INJECTED = 13, 0x100, 0x104, 0x12, 0x10
+
+    def __init__(self):
+        self.keys = 0
+        self.enter_pressed = False
+        self._thread_id = None
+        self._callback = _HOOK_PROC(self._on_key)  # Kept referenced, or Windows would call freed memory.
+
+    def _on_key(self, code, message, data):
+        if code == 0 and message in (self.WM_KEYDOWN, self.WM_SYSKEYDOWN):
+            info = ctypes.cast(data, ctypes.POINTER(_KeyboardHookInfo)).contents
+            if not info.flags & self.LLKHF_INJECTED:
+                self.keys += 1
+                self.enter_pressed |= info.vkCode == VK_RETURN
+        return user32.CallNextHookEx(None, code, message, data)
+
+    def _run(self, ready):
+        import threading
+
+        self._thread_id = threading.get_native_id()
+        hook = user32.SetWindowsHookExW(self.WH_KEYBOARD_LL, self._callback, kernel32.GetModuleHandleW(None), 0)
+        ready.set()
+        message = wintypes.MSG()
+        while user32.GetMessageW(ctypes.byref(message), None, 0, 0) > 0:  # The hook needs a message loop.
+            pass
+        user32.UnhookWindowsHookEx(hook)
+
+    def start(self):
+        import threading
+
+        self.stop()
+        self.keys, self.enter_pressed = 0, False
+        ready = threading.Event()
+        threading.Thread(target=self._run, args=(ready,), daemon=True).start()
+        ready.wait(2)
+
+    def stop(self):
+        if self._thread_id:
+            user32.PostThreadMessageW(self._thread_id, self.WM_QUIT, 0, 0)
+            self._thread_id = None

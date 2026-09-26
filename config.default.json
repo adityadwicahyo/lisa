@@ -63,6 +63,8 @@
     "model": "small.en",
     "language": "en",
     "hint": "Claude, Lisa, README, commit, pull request, unit tests.",
+    "answer_model": "base.en",
+    "answer_hint": "Yes. No. Send it. Cancel. Never mind. Keep it. Wait. Delete it.",
     "idle_minutes": 10
   },
 
@@ -74,14 +76,16 @@
 
   "confirm": {
     "enabled": true,
-    "timeout_seconds": 6,
+    "timeout_seconds": 4,
     "max_words": 6,
-    "send_words": ["yes", "yeah", "yep", "yup", "ok", "okay", "oke", "sure", "send", "submit", "go", "go ahead", "do it",
-                   "please", "correct", "right", "alright", "all right", "looks good", "look good", "good", "perfect",
-                   "that's right", "exactly", "sounds good", "fine", "yes please", "good to go", "all good",
-                   "absolutely", "of course"],
-    "cancel_words": ["no", "nope", "cancel", "stop", "wait", "don't", "dont", "hold on", "not yet", "never mind", "wrong",
-                     "that's wrong", "not right", "incorrect", "not correct", "hold it"]
+    "send_words": ["yes", "yeah", "yep", "yup", "ok", "okay", "oke", "sure", "alright", "all right", "send",
+                   "submit", "go", "go ahead", "do it", "please", "correct", "right", "exactly", "perfect", "good",
+                   "fine", "absolutely", "of course"],
+    "cancel_words": ["no", "nope", "nah", "negative", "cancel", "never mind", "forget", "stop", "don't", "dont",
+                     "delete", "erase", "remove", "clear", "discard", "scrap", "throw it away", "wrong", "incorrect",
+                     "not correct", "not right"],
+    "keep_words": ["keep", "wait", "hold on", "hold it", "not yet", "not now", "edit", "fix", "i'll change",
+                   "leave it", "let me"]
   },
 
   "commands": {
