@@ -41,6 +41,14 @@ def match_wake(text, config):
     return text[match.end():].strip()
 
 
+def as_sentence(prompt):
+    """Start the prompt with a capital: after "Lisa, " speech-to-text writes "do something".
+
+    :param prompt: Text after "Lisa"
+    """
+    return prompt[:1].upper() + prompt[1:]
+
+
 def voice_command(prompt, config):
     """"off", "mic off", or None. Only the whole prompt counts, so "turn off the debug logging" is a normal prompt.
 

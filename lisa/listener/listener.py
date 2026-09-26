@@ -15,7 +15,7 @@ import numpy as np
 
 from lisa import system
 from lisa.listener import desktop, sounds
-from lisa.listener.language import classify_answer, is_cancel, is_stray, match_wake, voice_command
+from lisa.listener.language import as_sentence, classify_answer, is_cancel, is_stray, match_wake, voice_command
 from lisa.listener.stt import SpeechToText
 from lisa.listener.vad import VoiceActivityDetector
 from lisa.log import log as write_log
@@ -261,6 +261,7 @@ class Listener:
             log(f"Ignored (not a prompt): {prompt!r}")
             sounds.play(sounds.CANCELLED)
             return
+        prompt = as_sentence(prompt)
         log(f"Heard: {prompt}")
         self.deliver(prompt)
 

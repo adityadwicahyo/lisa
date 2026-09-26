@@ -1,6 +1,6 @@
 import pytest
 
-from lisa.listener.language import classify_answer, is_cancel, is_stray, match_wake, voice_command
+from lisa.listener.language import as_sentence, classify_answer, is_cancel, is_stray, match_wake, voice_command
 
 
 @pytest.mark.parametrize("text, prompt", [
@@ -96,3 +96,13 @@ def test_classify_answer(config, answer, result):
 ])
 def test_is_stray(config, prompt, stray):
     assert is_stray(prompt, config) is stray
+
+
+@pytest.mark.parametrize("prompt, sentence", [
+    ("do something.", "Do something."),
+    ("run the unit tests", "Run the unit tests"),
+    ("Open the settings screen.", "Open the settings screen."),
+    ("", ""),
+])
+def test_as_sentence(prompt, sentence):
+    assert as_sentence(prompt) == sentence
