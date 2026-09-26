@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lisa-voice"
+version = "0.1.0"
+description = "An offline voice assistant for Claude Code on Windows: she reads replies aloud and types what you say."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.0",
+    "kokoro-onnx>=0.4",
+    "onnxruntime>=1.20",
+    "faster-whisper>=1.1",
+    "sounddevice>=0.5",
+]
+
+[project.optional-dependencies]
+voice-check = ["sherpa-onnx>=1.12"]
+piper = ["piper-tts>=1.3"]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+include = ["lisa*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

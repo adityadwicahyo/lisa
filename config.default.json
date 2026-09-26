@@ -1,0 +1,109 @@
+{
+  "voice": {
+    "engine": "kokoro",
+    "name": "af_bella",
+    "address": "sir",
+    "speed": 1.0,
+    "volume": 1.0
+  },
+
+  "events": {
+    "session_start": true,
+    "prompt_submit": false,
+    "tool_use": true,
+    "permission": true,
+    "stop": true,
+    "loading_word": false
+  },
+
+  "tool_use": {
+    "min_gap_seconds": 0
+  },
+
+  "reply": {
+    "read": "paragraph",
+    "max_sentences": 2,
+    "max_words": 80,
+    "max_delay_seconds": 60
+  },
+
+  "task_done": {
+    "research_tool_threshold": 5,
+    "long_task_seconds": 180,
+    "build_command_keywords": ["gradle", "gradlew", "npm run build", "npm test", "yarn build", "pnpm build",
+                               "mvn ", "cargo build", "cargo test", "dotnet build", "go build", "pytest", "make "]
+  },
+
+  "server": {
+    "port": 47321,
+    "max_delay_seconds": 8,
+    "idle_minutes": 60
+  },
+
+  "listener": {
+    "enabled_on_battery": false,
+    "microphone": null,
+    "port": 47322,
+    "claude_code_processes": ["claude.exe"],
+    "claude_code_excluded_paths": ["\\AnthropicClaude\\"],
+    "silence_seconds": 1.0,
+    "min_speech_seconds": 0.4,
+    "max_sentence_seconds": 20,
+    "wait_for_prompt_seconds": 5
+  },
+
+  "wake": {
+    "name": "lisa",
+    "aliases": ["lisa", "liza", "leesa", "leeza", "lise", "elisa", "lisa's"],
+    "prefix_words": ["hey", "ok", "okay", "hi", "hello", "yo"]
+  },
+
+  "speech_to_text": {
+    "quick_model": "tiny.en",
+    "model": "small.en",
+    "language": "en",
+    "hint": "Claude, Lisa, README, commit, pull request, unit tests.",
+    "idle_minutes": 10
+  },
+
+  "typing": {
+    "apps": ["Code.exe", "WindowsTerminal.exe", "powershell.exe", "pwsh.exe", "cmd.exe", "studio64.exe", "idea64.exe",
+             "pycharm64.exe", "webstorm64.exe", "rider64.exe", "goland64.exe", "clion64.exe", "Cursor.exe"],
+    "delay_ms": 5
+  },
+
+  "confirm": {
+    "enabled": true,
+    "timeout_seconds": 6,
+    "max_words": 6,
+    "send_words": ["yes", "yeah", "yep", "yup", "ok", "okay", "oke", "sure", "send", "submit", "go", "go ahead", "do it",
+                   "please", "correct", "right", "alright", "all right", "looks good", "look good", "good", "perfect",
+                   "that's right", "exactly", "sounds good", "fine", "yes please", "good to go", "all good",
+                   "absolutely", "of course"],
+    "cancel_words": ["no", "nope", "cancel", "stop", "wait", "don't", "dont", "hold on", "not yet", "never mind", "wrong",
+                     "that's wrong", "not right", "incorrect", "not correct", "hold it"]
+  },
+
+  "commands": {
+    "cancel_phrases": ["never mind", "cancel", "cancel that", "cancel it", "stop", "forget it", "forget about it",
+                       "scratch that", "ignore that", "ignore me", "nothing", "no", "not now", "abort", "don't",
+                       "wrong", "my mistake"],
+    "cancel_phrases_at_end": ["never mind", "forget it", "forget about it", "scratch that", "cancel that", "ignore that"],
+    "off_phrases": ["off", "of", "turn off", "turn yourself off", "switch off", "shut down", "shutdown", "power off",
+                    "go to sleep", "sleep", "goodbye", "good bye", "bye bye", "lisa off", "go offline", "offline"],
+    "mic_off_phrases": ["stop listening", "stop listening to me", "don't listen", "mic off", "microphone off", "mute",
+                        "mute yourself", "mute the mic", "mute the microphone", "turn off the mic",
+                        "turn off the microphone", "stop the mic", "stop the microphone"]
+  },
+
+  "voice_check": {
+    "enabled": true,
+    "threshold": 0.4,
+    "short_threshold": 0.3,
+    "short_seconds": 1.0,
+    "enroll_seconds": 30,
+    "enroll_short_rounds": 2
+  },
+
+  "claude_settings_path": "~/.claude/settings.json"
+}

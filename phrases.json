@@ -1,0 +1,84 @@
+{
+  "greeting": [
+    "Lisa is online. Ready when you are, {address}.",
+    "Good to see you, {address}. I'm ready to assist.",
+    "Session started. How can I help today, {address}?"
+  ],
+  "acknowledge": [
+    "Understood, {address}. Working on it.",
+    "On it, {address}.",
+    "Right away, {address}."
+  ],
+  "quick": [
+    "Here is your answer, {address}.",
+    "Done, {address}. The response is ready.",
+    "Your answer is ready, {address}.",
+    "Here you go, {address}."
+  ],
+  "research": [
+    "After a deep dive into the code, here is the result, {address}.",
+    "I've analyzed the codebase. The findings are ready, {address}.",
+    "Investigation complete. Here is what I found, {address}.",
+    "I've gone through the relevant files. The result is ready for your review, {address}."
+  ],
+  "edits": [
+    "The changes are complete, {address}. Please review them.",
+    "I've updated the code, {address}. Ready for your review.",
+    "Implementation finished, {address}.",
+    "The code changes are in place, {address}."
+  ],
+  "build": [
+    "The build and checks have finished, {address}. Here is the result.",
+    "Build run complete, {address}. Please take a look.",
+    "I've finished running the build tasks, {address}."
+  ],
+  "long": [
+    "Thank you for your patience, {address}. The task is complete.",
+    "That took a while, {address}, but the result is ready.",
+    "The task is finally complete, {address}. Here is the result."
+  ],
+  "question": [
+    "{address}, I need your input before I continue.",
+    "I have a question for you, {address}.",
+    "Could you clarify something for me, {address}?"
+  ],
+  "permission": [
+    "{address}, I need your approval to proceed.",
+    "Permission required, {address}. Please take a look.",
+    "Excuse me, {address}. I'm waiting for your approval."
+  ],
+  "wake": [
+    "Yes, {address}?",
+    "I'm listening, {address}.",
+    "Go ahead, {address}."
+  ],
+  "offline": [
+    "Going offline, {address}.",
+    "Signing off, {address}. Goodbye.",
+    "Turning off now, {address}."
+  ],
+  "mic_off": [
+    "I'll stop listening, {address}.",
+    "Microphone off, {address}.",
+    "Okay, I'm not listening anymore, {address}."
+  ],
+  "cancelled": [
+    "Okay, never mind, {address}.",
+    "Cancelled, {address}.",
+    "Alright, {address}."
+  ],
+  "confirm": [
+    "Shall I send it, {address}?",
+    "Ready to send, {address}?",
+    "Should I send this to Claude, {address}?",
+    "Does that look right, {address}?",
+    "Is that correct, {address}? Shall I send it?",
+    "Is this what you meant, {address}?",
+    "Want me to send it, {address}?",
+    "Good to go, {address}?",
+    "All set, {address}. Shall I submit it?",
+    "Shall I pass this on to Claude, {address}?",
+    "Everything look okay, {address}?",
+    "Should I go ahead and send it, {address}?"
+  ]
+}
