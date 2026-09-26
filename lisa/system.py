@@ -146,3 +146,89 @@ def claude_code_running(config):
         return False
     finally:
         kernel32.CloseHandle(ctypes.c_void_p(snapshot))
+
+
+class _TcpRow(ctypes.Structure):
+    _fields_ = [("state", ctypes.c_ulong), ("local_addr", ctypes.c_ulong), ("local_port", ctypes.c_ulong),
+                ("remote_addr", ctypes.c_ulong), ("remote_port", ctypes.c_ulong), ("pid", ctypes.c_ulong)]
+
+
+def port_owner(port):
+    """Id of the process listening on a local TCP port, or None.
+
+    :param port: Port number
+    """
+    iphlpapi = ctypes.windll.iphlpapi
+    size = ctypes.c_ulong(0)
+    iphlpapi.GetExtendedTcpTable(None, ctypes.byref(size), False, 2, 3, 0)  # AF_INET, TCP_TABLE_OWNER_PID_LISTENER
+    buffer = ctypes.create_string_buffer(size.value)
+    if iphlpapi.GetExtendedTcpTable(buffer, ctypes.byref(size), False, 2, 3, 0):
+        return None
+    count = ctypes.c_ulong.from_buffer(buffer).value
+    rows = (_TcpRow * count).from_buffer(buffer, ctypes.sizeof(ctypes.c_ulong))
+    for row in rows:
+        if socket.ntohs(row.local_port & 0xFFFF) == port:
+            return row.pid
+    return None
+
+
+def processes():
+    """{process id: (parent id, executable path)} for every process this user can see."""
+    kernel32 = ctypes.windll.kernel32
+    kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
+    snapshot = kernel32.CreateToolhelp32Snapshot(0x2, 0)  # TH32CS_SNAPPROCESS
+    result = {}
+    try:
+        entry = _ProcessEntry32()
+        entry.dwSize = ctypes.sizeof(_ProcessEntry32)
+        found = kernel32.Process32FirstW(ctypes.c_void_p(snapshot), ctypes.byref(entry))
+        while found:
+            result[entry.th32ProcessID] = (entry.th32ParentProcessID, entry.szExeFile)
+            found = kernel32.Process32NextW(ctypes.c_void_p(snapshot), ctypes.byref(entry))
+    finally:
+        kernel32.CloseHandle(ctypes.c_void_p(snapshot))
+    return result
+
+
+class _MemoryCounters(ctypes.Structure):
+    _fields_ = [("cb", ctypes.c_ulong), ("PageFaultCount", ctypes.c_ulong),
+                ("PeakWorkingSetSize", ctypes.c_size_t), ("WorkingSetSize", ctypes.c_size_t),
+                ("QuotaPeakPagedPoolUsage", ctypes.c_size_t), ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t), ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                ("PagefileUsage", ctypes.c_size_t), ("PeakPagefileUsage", ctypes.c_size_t)]
+
+
+def memory_in_use(pid):
+    """Bytes of RAM a process uses right now (its working set, as Task Manager counts it), 0 if it's gone.
+
+    :param pid: Process id
+    """
+    kernel32 = ctypes.windll.kernel32
+    kernel32.OpenProcess.restype = ctypes.c_void_p
+    handle = kernel32.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+    if not handle:
+        return 0
+    try:
+        counters = _MemoryCounters()
+        counters.cb = ctypes.sizeof(_MemoryCounters)
+        if not ctypes.windll.psapi.GetProcessMemoryInfo(ctypes.c_void_p(handle), ctypes.byref(counters),
+                                                       counters.cb):
+            return 0
+        return counters.WorkingSetSize
+    finally:
+        kernel32.CloseHandle(ctypes.c_void_p(handle))
+
+
+def lisa_processes(exclude=()):
+    """Ids of every process started from Lisa's virtual environment, plus the Python processes those start.
+
+    On Windows `.venv/Scripts/python.exe` is a small launcher that starts the real Python as its child, so both
+    are counted. Nothing started from this folder is missed, which is what makes a total of 0 trustworthy.
+
+    :param exclude: Process ids to leave out (the `lisa status` command itself)
+    """
+    venv = str(ROOT / ".venv").lower()
+    table = processes()
+    launchers = {pid for pid in table if process_path(pid).lower().startswith(venv)}
+    children = {pid for pid, (parent, _) in table.items() if parent in launchers}
+    return (launchers | children) - set(exclude)

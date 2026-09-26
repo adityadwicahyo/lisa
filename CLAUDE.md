@@ -40,6 +40,13 @@ Logs: `.lisa/logs/hook.log`, `server.log`, `listener.log`.
 - Word rules for the listener are pure functions in `listener/language.py`; add tests in
   `tests/test_language.py` when changing them.
 
+## Releasing
+
+The version lives only in `lisa/__init__.py` (`pyproject.toml` reads it). To release: bump it, add a section to
+CHANGELOG.md, commit, then `git tag -a vX.Y.Z -m "Lisa X.Y.Z"` and `git push origin main vX.Y.Z`. The Release
+workflow publishes that CHANGELOG section as the GitHub Release; the Tests workflow runs pytest on Windows for
+every push.
+
 ## Gotchas
 
 - A running server or listener keeps its old code: after editing them, restart (`lisa off`/`lisa on`, or

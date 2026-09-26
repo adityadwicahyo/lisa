@@ -1,0 +1,30 @@
+name: Release
+
+# Pushing a tag such as v0.3.0 publishes a GitHub Release whose notes are that version's CHANGELOG.md section.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Take the release notes from CHANGELOG.md
+        run: |
+          python3 - <<'EOF'
+          import os, re
+          version = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          changelog = open("CHANGELOG.md", encoding="utf-8").read()
+          section = re.search(rf"^## \[{re.escape(version)}\][^\n]*\n(.*?)(?=^## |^\[|\Z)", changelog, re.M | re.S)
+          if not section:
+              raise SystemExit(f"CHANGELOG.md has no section for {version}")
+          open("release-notes.md", "w", encoding="utf-8").write(section.group(1).strip() + "\n")
+          EOF
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Lisa ${{ github.ref_name }}
+          body_path: release-notes.md

@@ -1,5 +1,8 @@
 # Lisa
 
+[![Tests](https://github.com/adityadwicahyo/lisa/actions/workflows/tests.yml/badge.svg)](https://github.com/adityadwicahyo/lisa/actions/workflows/tests.yml)
+[![Release](https://img.shields.io/github/v/release/adityadwicahyo/lisa)](https://github.com/adityadwicahyo/lisa/releases)
+
 **An offline voice assistant for [Claude Code](https://claude.com/claude-code) on Windows.**
 Lisa reads Claude's replies aloud, tells you what Claude is doing while it works, and types what you say
 into Claude Code. Speech recognition and her voice run on your own computer; nothing is sent anywhere.
@@ -94,6 +97,7 @@ Run it in a terminal, or as `/lisa <command>` in Claude Code.
 | `lisa generate`             | re-render her spoken lines after changing her voice or phrases      |
 | `lisa voices`               | hear every available voice                                          |
 | `lisa install` / `uninstall`| connect Lisa to Claude Code, or remove her hooks, command and PATH entry |
+| `lisa version`              | which version you have; see [CHANGELOG.md](CHANGELOG.md) for what changed |
 
 ## Configuration
 
@@ -126,10 +130,12 @@ after changing her voice or phrases run `lisa generate`, and after changing list
 | Part                        | When                                  | Cost                                     |
 |-----------------------------|---------------------------------------|------------------------------------------|
 | Hook                        | each Claude Code event                | ~50 ms, exits at once                    |
-| Speech server (her voice)   | after she speaks; exits after 60 min idle | ~400 MB RAM                          |
-| Listener, quiet room        | Claude Code open and plugged in       | ~100 MB RAM, ~2% of one CPU core         |
+| Speech server (her voice)   | after she speaks; exits after 60 min idle | ~650 MB RAM                          |
+| Listener, quiet room        | Claude Code open and plugged in       | ~80 MB RAM, ~2% of one CPU core          |
 | Listener, people talking    | each sentence is transcribed          | ~20–40% of one core                      |
-| Prompt transcription        | after "Lisa, …"                       | ~500 MB RAM, unloaded after 10 min idle  |
+| Prompt transcription        | after "Lisa, …"                       | listener grows to ~700 MB, back after 10 min idle |
+
+`lisa status` shows the memory each part uses right now; when Lisa is off it is 0.
 
 ## Troubleshooting
 
